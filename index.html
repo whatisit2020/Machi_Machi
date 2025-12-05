@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Traffic Ease – 待ち時間のおすすめプロトタイプ</title>
+<title>Machi Machi – 待ち時間のおすすめプロトタイプ</title>
 <style>
   :root{
     --bg:#0f172a;
@@ -214,6 +214,24 @@
   background:#0f172a;
   border-color:#475569;
 }
+
+/* ▼ 상위 카테고리 버튼용 */
+.category-row{
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.category-btn{
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
+.category-btn.active{
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0f172a;
+}
+
 </style>
 </head>
 <body>
@@ -261,8 +279,13 @@
       </div>
       <div class="sub" style="margin-top:4px">※ GPSは使用しません。サンプルデータから近隣施設を提案します。</div>
 
-      <div style="margin-top:14px"></div>
+            <div style="margin-top:14px"></div>
       <h2>おすすめ</h2>
+
+      <!-- ▼ 상위 카테고리 선택 영역 -->
+      <div id="category-bar" class="row category-row"></div>
+
+      <!-- ▼ 실제 추천 카드 영역 -->
       <div id="cards" class="grid"></div>
     </section>
   </div>
@@ -313,29 +336,100 @@ const baseActivities = [
 
 const areaFacilities = {
   '新宿': [
-    { name:'ドトールコーヒー',   type:'カフェ',   walkMin:5, stayMin:20, distanceKm:0.35 },
-    { name:'スターバックス西新宿', type:'カフェ',   walkMin:7, stayMin:25, distanceKm:0.5 },
-    { name:'新宿中央公園を散歩',   type:'ライト',   walkMin:6, stayMin:12, distanceKm:0.6 },
+    { name:'ドトールコーヒー新宿西口',   type:'カフェ', openTime: "07:00",
+closeTime: "22:00",  walkMin:5, stayMin:20, distanceKm:0.35 },
+    { name:'スターバックス西新宿',       type:'カフェ', openTime: "07:00",
+closeTime: "22:00",  walkMin:7, stayMin:25, distanceKm:0.5 },
+    { name:'タリーズコーヒー新宿駅前',   type:'カフェ', openTime: "07:00",
+closeTime: "22:00",  walkMin:6, stayMin:20, distanceKm:0.4 },
+    { name:'新宿中央公園を散歩',         type:'ライト',   walkMin:6, stayMin:12, distanceKm:0.6 },
+    { name:'都庁展望ロビーで景色を見る', type:'カルチャー', walkMin:9, stayMin:20, distanceKm:0.9 },
   ],
+
   '渋谷': [
-    { name:'ブルーボトル渋谷',   type:'カフェ',   walkMin:8, stayMin:20, distanceKm:0.7 },
-    { name:'TSUTAYA書店',       type:'カルチャー', walkMin:6, stayMin:15, distanceKm:0.5 },
+    { name:'ブルーボトル渋谷',           type:'カフェ', openTime: "07:00",
+closeTime: "22:00",  walkMin:8, stayMin:20, distanceKm:0.7 },
+    { name:'スターバックス渋谷スクランブル', type:'カフェ', openTime: "07:00",
+closeTime: "22:00",  walkMin:6, stayMin:20, distanceKm:0.5 },
+    { name:'TSUTAYA書店 渋谷店',         type:'カルチャー', openTime: "07:00",
+closeTime: "22:00",  walkMin:6, stayMin:15, distanceKm:0.5 },
+    { name:'渋谷センター街をぶらぶら',   type:'ライト',    walkMin:5, stayMin:10, distanceKm:0.4 },
+    { name:'ドラッグストアで日用品補充', type:'生活',      walkMin:5, stayMin:10, distanceKm:0.3 },
   ],
+
   '八王子': [
-    { name:'スターバックス駅前', type:'カフェ',   walkMin:5, stayMin:22, distanceKm:0.4 },
-    { name:'お弁当ピックアップ', type:'グルメ',   walkMin:4, stayMin:10, distanceKm:0.3 },
+    { name:'スターバックス八王子駅前',   type:'カフェ', openTime: "07:00",
+closeTime: "22:00",  walkMin:5, stayMin:22, distanceKm:0.4 },
+    { name:'ドトールコーヒー八王子店',   type:'カフェ', openTime: "07:00",
+closeTime: "22:00",  walkMin:6, stayMin:18, distanceKm:0.45 },
+    { name:'お弁当ピックアップ',         type:'グルメ', openTime: "07:00",
+closeTime: "22:00",  walkMin:4, stayMin:10, distanceKm:0.3 },
+    { name:'駅前商店街を一周',           type:'ライト',   walkMin:5, stayMin:12, distanceKm:0.5 },
+    { name:'スーパーで夕食の買い物',     type:'生活',     walkMin:7, stayMin:15, distanceKm:0.6 },
   ],
+
   '横浜': [
-    { name:'横浜海辺を散策',     type:'ライト',   walkMin:9, stayMin:15, distanceKm:0.8 },
-    { name:'元町カフェ',         type:'カフェ',   walkMin:10, stayMin:25, distanceKm:0.9 },
+    { name:'横浜海辺を散策',             type:'ライト',   walkMin:9, stayMin:15, distanceKm:0.8 },
+    { name:'元町カフェ',                 type:'カフェ', openTime: "07:00",
+closeTime: "22:00",  walkMin:10, stayMin:25, distanceKm:0.9 },
+    { name:'赤レンガ倉庫周辺をぶらり',   type:'カルチャー', walkMin:10, stayMin:20, distanceKm:1.0 },
+    { name:'テイクアウト用ベーカリー',   type:'グルメ', openTime: "07:00",
+closeTime: "22:00",  walkMin:7, stayMin:12, distanceKm:0.7 },
+    { name:'コンビニで飲み物とスナック', type:'生活',     walkMin:5, stayMin:8, distanceKm:0.4 },
   ],
+
   '多摩センター': [
-    { name:'ベーカリーでさっと購入', type:'グルメ', walkMin:6, stayMin:10, distanceKm:0.4 },
-    { name:'小さな公園を一周',       type:'ライト', walkMin:5, stayMin:12, distanceKm:0.35 },
+    { name:'ベーカリーでさっと購入',     type:'グルメ', openTime: "07:00",
+closeTime: "22:00",  walkMin:6, stayMin:10, distanceKm:0.4 },
+    { name:'駅前のカフェで一息',         type:'カフェ', openTime: "07:00",
+closeTime: "22:00",  walkMin:7, stayMin:20, distanceKm:0.5 },
+    { name:'小さな公園を一周',           type:'ライト',   walkMin:5, stayMin:12, distanceKm:0.35 },
+    { name:'ショッピングモールを少しだけ散策', type:'カルチャー', walkMin:6, stayMin:15, distanceKm:0.6 },
+    { name:'ドラッグストアで日用品チェック',   type:'生活',   walkMin:5, stayMin:10, distanceKm:0.4 },
   ],
 };
 
+
+// ▼ 상위 카テゴ리定義
+const categories = [
+  { id:'all',   label:'すべて',          kinds:null },
+  { id:'cafe',  label:'カフェ',          kinds:['カフェ','カフェ一覧'] },
+  { id:'walk',  label:'散歩・ライト',    kinds:['ライト'] },
+  { id:'food',  label:'グルメ',          kinds:['グルメ'] },
+  { id:'culture', label:'カルチャー',    kinds:['カルチャー'] },
+  { id:'life',  label:'生活',            kinds:['生活'] },
+];
+
+let currentCategory = 'all';
+
+
 let timerId = null;
+const categoryBar = document.getElementById('category-bar');
+
+function renderCategories(){
+  if (!categoryBar) return;
+
+  categoryBar.innerHTML = categories.map(c => `
+    <button
+      class="secondary category-btn ${c.id === currentCategory ? 'active' : ''}"
+      data-id="${c.id}"
+    >
+      ${c.label}
+    </button>
+  `).join('');
+
+  categoryBar.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentCategory = btn.dataset.id;
+      renderCategories();        // active 상태 갱신
+      refreshRecommendations();  // 선택된 카테고리에 맞게 추천 다시 계산
+    });
+  });
+}
+
+// 페이지 로드 시 카테고리 버튼 한번 생성
+renderCategories();
+
 let endAt = null;
 let remainingSec = 0;
 let isRunning = false;
@@ -467,18 +561,19 @@ function refreshRecommendations(showEmptyNote=false){
       list.push({
         title: (f.type==='' ? '' : f.name),
         subtitle: f.name,
+        openTime: f.openTime || null,
+        closeTime: f.closeTime || null,
         kind: f.type,
         roundTrip: f.walkMin*2,
         stay: f.stayMin,
         total,
         distanceKm: f.distanceKm ?? null,
-        // ▼ 지도 검색용 쿼리(시설명 + 지역명)
         mapQuery: currentArea ? `${f.name} ${currentArea}` : f.name
       });
     }
   }
 
-  // 2) 위치 무관(베이스)
+  // 2) 위치 무관(ベース)
   for (const a of baseActivities){
     const total = a.travelMin*2 + a.stayMin;
     if (total <= remainMin){
@@ -490,36 +585,54 @@ function refreshRecommendations(showEmptyNote=false){
         stay: a.stayMin,
         total,
         distanceKm: null,
-        // ▼ 지도 검색용 쿼리(활동 제목 또는 카테고리 + 지역명)
         mapQuery: currentArea ? `${a.title} ${currentArea}` : a.title
       });
     }
   }
 
-  list.sort((x,y)=>x.total - y.total);
+  // ▼ 추가: 현재 선택된 카테고리에 맞게 필터링
+  const cat = categories.find(c => c.id === currentCategory);
+  let filtered = list;
+  if (cat && cat.kinds){
+    filtered = list.filter(item => cat.kinds.includes(item.kind));
+  }
 
-  if (list.length===0){
-    cards.innerHTML = `<div class="empty">${showEmptyNote ? 'この地域では、現在の残り時間内で可能な提案がありません。時間を延ばすか、他の活動を試してみてください。' : '残り時間を入力して「開始」を押してください。'}</div>`;
+  // 시간 오름차순 정렬은 필터 후에
+  filtered.sort((x,y)=>x.total - y.total);
+
+  if (filtered.length===0){
+    cards.innerHTML = `<div class="empty">${showEmptyNote
+      ? 'この地域では、現在の残り時間内で可能な提案がありません。時間を延ばすか、他の活動を試してみてください。'
+      : '残り時間を入力して「開始」を押してください。'
+    }</div>`;
     return;
   }
 
-  cards.innerHTML = list.map(item=>{
+  cards.innerHTML = filtered.map(item=>{
     const ok = remainingSec >= item.total*60;
     const link = mapLink(item.mapQuery || item.title || '');
+
+  const timeChips = `
+    <span class="chip">滞在 ${item.stay}分</span>
+    <span class="chip">往復移動 ${item.roundTrip}分</span>
+    <span class="chip">合計 ${item.total}分</span>
+    ${item.distanceKm ? `<span class="chip">約 ${item.distanceKm.toFixed(1)} km</span>`:''}
+    ${(item.openTime && item.closeTime)
+        ? `<span class="chip">営業時間 ${item.openTime}〜${item.closeTime}</span>`
+        : ''
+    }
+  `;
+
+
     return `
       <article class="card">
         <h3>${escapeHtml(item.title)}</h3>
         <div class="meta" style="margin:4px 0 8px">
           <span class="chip">${escapeHtml(item.kind)}</span>
           ${item.subtitle ? `<span class="chip">${escapeHtml(item.subtitle)}</span>`:''}
-          <span class="chip">滞在 ${item.stay}分</span>
-          <span class="chip">往復移動 ${item.roundTrip}分</span>
-          <span class="chip">合計 ${item.total}分</span>
-          ${item.distanceKm ? `<span class="chip">約 ${item.distanceKm.toFixed(1)} km</span>`:''}
+          ${timeChips}
         </div>
         <div class="${ok?'ok':'warn'}">${ok?'今から始めても十分です。':'時間が少し足りません。'}</div>
-
-        <!-- ▼ 지도 열기 버튼 -->
         <div class="actions">
           <a class="map-btn" href="${link}" target="_blank" rel="noopener">地図を開く</a>
         </div>
@@ -527,6 +640,7 @@ function refreshRecommendations(showEmptyNote=false){
     `;
   }).join('');
 }
+
 
 function escapeHtml(str){
   if(typeof str!=='string') return str;
